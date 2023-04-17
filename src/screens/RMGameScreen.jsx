@@ -5,13 +5,27 @@ import { styles } from "../utils/styles";
 
 export default function RMGameScreen() {
   const [personagem, setPersonagem] = useState(null);
-  const [personagens, setPersonagens] = useState(0);
-  const [totalPersonagens, setTotalPersonagens] = useState(0);
-  const [resposta, setResposta] = useState(null);
+  const [personagens, setPersonagens] = useState([]);
+  const [totalPersonagens, setTotalPersonagens] = useState(1);
+ 
 
   useEffect(() => {
-    retornaTotalPersonagens();
+    fetch('https://rickandmortyapi.com/api/character')
+        .then((response) => response.json())
+        .then((json) => {
+            setTotalPersonagens(json.info.count);
+        })
   }, []);
+
+  useEffect(() => {
+    fetch('https://rickandmortyapi.com/api/character/' + returnRandomNumber())
+        .then((response) => response.json())
+        .then((json) => {
+            setPersonagem(json);
+     })
+  }, [totalPersonagens]);
+
+  
 
   function buscaPersonagemAleatorio() {
     fetch(
@@ -33,12 +47,29 @@ export default function RMGameScreen() {
     return Math.floor(Math.random() * totalPersonagens) + 1;
   }
 
-function checkIfPersonagemEstaVivo() {
-  if (personagem.status === "Alive") {
-    setResposta(true);
-  } else {
-    setResposta(false);
-  }
+  async function handlePersonagemVivoOuMorto(resposta) {
+    const isAlive = personagem.status === 'Alive';
+    if (resposta === isAlive) {
+        alert('Você acertou!');
+    } else {
+        alert('Você errou!');
+    }
+    //alert(isAlive ? 'Você acertou!' : 'Você errou!');
+    // fetch('https://rickandmortyapi.com/api/character/' + returnRandomNumber())
+    //     .then((response) => response.json())
+    //     .then((json) => {
+    //         setPersonagem(json);
+    //     })
+}
+
+const returnRandomNumber = () => {
+    let randomNumber = Math.floor(Math.random() * totalPersonagens) + 1;
+
+    // canoot return 0
+    if (randomNumber === 0) {
+        return 1;
+    }
+    return randomNumber;
 }
 
   return (
@@ -55,16 +86,30 @@ function checkIfPersonagemEstaVivo() {
           marginVertical: 20,
         }}
       >
-        Personagem: {personagem?.name}
+      Personagem: {personagem?.name}
+      
       </Text>
-      <Text>O personagem está vivo?</Text>
-      {resposta !== null && <Text>{resposta ? "Sim" : "Não"}</Text>}
-      <Button onPress={() => checkIfPersonagemEstaVivo()} mode="conteined">
-        Checar
-      </Button>
-      <Button onPress={buscaPersonagemAleatorio} mode="contained">
+      <Button 
+        onPress={buscaPersonagemAleatorio} mode="contained"
+        style={{marginBottom: 20}}
+      >
         Buscar Personagem
       </Button>
+      <Text
+        style={{marginBottom: 20}}
+      >O personagem está vivo?</Text>
+      <View style={{ flexDirection: "row", gap: 20 }}>
+        <Button
+          mode="contained"
+          onPress={() => handlePersonagemVivoOuMorto(true)}
+        >SIM</Button>
+        <Button
+          mode="contained"
+          onPress={() => handlePersonagemVivoOuMorto(false)}
+          >NÃO</Button>
+        </View>
+      
     </View>
   );
 }
+// 
